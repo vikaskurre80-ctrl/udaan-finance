@@ -1,0 +1,276 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String         @id @default(cuid())
+  name           String?
+  email          String         @unique
+  emailVerified  DateTime?      @map("email_verified")
+  image          String?
+  password       String?
+  role           String         @default("team_member")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  isAdmin        Boolean        @default(false)
+  accounts       Account[]
+  approvalsGiven Approval[]     @relation("approver")
+  notifications  Notification[]
+  sessions       Session[]
+  workEntries    WorkEntry[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model TeamMember {
+  id               String            @id @default(cuid())
+  name             String
+  role             String
+  paymentPerVideo  Int
+  email            String?           @unique
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  userId           String?           @map("user_id")
+  workRatePerTask  Int               @default(0) @map("work_rate_per_task")
+  totalEarnings    Int               @default(0) @map("total_earnings")
+  attendances      Attendance[]
+  videoAssignments VideoAssignment[]
+  workEntries      WorkEntry[]
+
+  @@map("team_members")
+}
+
+model Video {
+  id                   String            @id @default(cuid())
+  title                String
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+  clientId             String?           @map("client_id")
+  status               String            @default("PENDING")
+  adsPayment           Int               @default(50)
+  clientManagerPayment Int               @default(50)
+  companyFund          Int               @default(100)
+  date                 DateTime          @default(now())
+  editorPayment        Int               @default(150)
+  shooterPayment       Int               @default(100)
+  smmPayment           Int               @default(50)
+  totalRevenue         Int               @default(500)
+  assignments          VideoAssignment[]
+  client               Client?           @relation(fields: [clientId], references: [id])
+
+  @@map("videos")
+}
+
+model VideoAssignment {
+  id           String     @id @default(cuid())
+  videoId      String     @map("video_id")
+  teamMemberId String     @map("team_member_id")
+  amount       Int
+  status       String     @default("Pending")
+  notes        String?
+  approvedAt   DateTime?  @map("approved_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  teamMember   TeamMember @relation(fields: [teamMemberId], references: [id])
+  video        Video      @relation(fields: [videoId], references: [id])
+
+  @@map("video_assignments")
+}
+
+model Expense {
+  id            String          @id @default(cuid())
+  description   String
+  amount        Int
+  category      ExpenseCategory
+  date          DateTime
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  paymentMethod String          @default("cash") @map("payment_method")
+
+  @@map("expenses")
+}
+
+model WorkEntry {
+  id           String     @id @default(cuid())
+  teamMemberId String     @map("team_member_id")
+  userId       String     @map("user_id")
+  title        String
+  description  String
+  quantity     Int        @default(1)
+  ratePerTask  Int        @map("rate_per_task")
+  totalAmount  Int        @map("total_amount")
+  status       String     @default("PENDING")
+  date         DateTime   @default(now())
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  clientId     String?    @map("client_id")
+  role         String?    @default("Shooter")
+  approval     Approval?
+  teamMember   TeamMember @relation(fields: [teamMemberId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+
+  @@map("work_entries")
+}
+
+model Approval {
+  id              String    @id @default(cuid())
+  workEntryId     String    @unique @map("work_entry_id")
+  approverId      String    @map("approver_id")
+  status          String    @default("PENDING")
+  approvedAt      DateTime? @map("approved_at")
+  rejectionReason String?   @map("rejection_reason")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  paidStatus      String    @default("PENDING") @map("paid_status")
+  approver        User      @relation("approver", fields: [approverId], references: [id])
+  workEntry       WorkEntry @relation(fields: [workEntryId], references: [id], onDelete: Cascade)
+
+  @@map("approvals")
+}
+
+model WorkTask {
+  id            String    @id @default(cuid())
+  title         String
+  teamMemberId  String    @map("team_member_id")
+  status        String    @default("PENDING")
+  paymentAmount Int       @map("payment_amount")
+  approvedAt    DateTime? @map("approved_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("work_tasks")
+}
+
+model ReelBatch {
+  id            String   @id @default(cuid())
+  clientId      String   @map("client_id")
+  description   String
+  quantity      Int
+  date          DateTime @default(now())
+  shooterStatus String   @default("PENDING")
+  editorStatus  String   @default("PENDING")
+  smmStatus     String   @default("PENDING")
+  adsStatus     String   @default("PENDING")
+  cmStatus      String   @default("PENDING")
+  shooterId     String?  @map("shooter_id")
+  editorId      String?  @map("editor_id")
+  smmId         String?  @map("smm_id")
+  adsId         String?  @map("ads_id")
+  cmId          String?  @map("cm_id")
+  status        String   @default("IN_PROGRESS")
+  isPaid        Boolean  @default(false)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  client        Client   @relation(fields: [clientId], references: [id])
+
+  @@map("reel_batches")
+}
+
+model Client {
+  id             String      @id @default(cuid())
+  name           String
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+  location       String      @default("")
+  completedReels Int         @default(0) @map("completed_reels")
+  dueDate        DateTime?   @map("due_date")
+  packagePrice   Int         @default(0) @map("package_price")
+  pricePerReel   Int         @default(500) @map("price_per_reel")
+  shopName       String?     @map("shop_name")
+  startDate      DateTime?   @default(now()) @map("start_date")
+  status         String      @default("ACTIVE")
+  totalReceived  Int         @default(0) @map("total_received")
+  totalReels     Int         @default(0) @map("total_reels")
+  payments       Payment[]
+  reelBatches    ReelBatch[]
+  videos         Video[]
+
+  @@map("clients")
+}
+
+model Payment {
+  id          String    @id @default(cuid())
+  clientId    String    @map("client_id")
+  amount      Int
+  dueDate     DateTime  @map("due_date")
+  paymentDate DateTime? @map("payment_date")
+  status      String    @default("PENDING")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  client      Client    @relation(fields: [clientId], references: [id])
+
+  @@map("payments")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  message   String
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model Attendance {
+  id           String     @id @default(cuid())
+  teamMemberId String     @map("team_member_id")
+  date         DateTime   @default(now())
+  status       String
+  teamMember   TeamMember @relation(fields: [teamMemberId], references: [id])
+
+  @@map("attendance")
+}
+
+enum ExpenseCategory {
+  GADI_PETROL
+  KHANA_FOOD
+  ADS
+  INTERNET
+  EQUIPMENT
+  OFFICE_EXPENSE
+  OTHER_BILLS
+}
