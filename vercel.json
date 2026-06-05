@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm run build && npx prisma generate && npx tsx scripts/seed-clients.ts",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "framework": "nextjs"
+}
