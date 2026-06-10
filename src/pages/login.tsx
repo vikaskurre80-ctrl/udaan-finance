@@ -197,9 +197,7 @@ export default function LoginPage() {
 
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <p className="text-xs text-gray-600 text-center">
-              <strong>Demo Access:</strong><br />
-              Admin: vikaskurre80@gmail.com<br />
-              Or use your team email to sign up
+              Use your team email to sign up
             </p>
           </div>
         </div>
