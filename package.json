@@ -38,8 +38,13 @@
     "@types/pg": "^8.20.0",
     "@typescript-eslint/eslint-plugin": "^7.12.0",
     "@typescript-eslint/parser": "^7.12.0",
+<<<<<<< HEAD
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.35",
     "tsx": "^4.19.0"
+=======
+    "eslint": "^9.3.0",
+    "eslint-config-next": "^14.2.0"
+>>>>>>> f399a1e60bd4feb398c39605cd1e75f2a4718c2e
   }
 }
