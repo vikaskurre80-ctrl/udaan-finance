@@ -4,7 +4,7 @@ import { FormInput } from '@/components/FormInput';
 import { Alert } from '@/components/Alert';
 import { useRouter } from 'next/router';
 import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { useAuthStore, getUserInfoFromEmail, isAllowedEmail } from '@/store/auth';
 
 export default function LoginPage() {
@@ -200,6 +200,25 @@ export default function LoginPage() {
               Use your team email to sign up
             </p>
           </div>
+
+          {!isSignup && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={async () => {
+                  if (!email) return setErrorMessage('Enter your email first');
+                  try {
+                    await sendPasswordResetEmail(auth, email);
+                    setErrorMessage('Password reset email sent!');
+                  } catch {
+                    setErrorMessage('Failed to send reset email');
+                  }
+                }}
+                className="text-blue-600 text-sm hover:underline"
+              >
+                Forgot Password?
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
