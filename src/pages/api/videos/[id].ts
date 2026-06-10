@@ -4,6 +4,27 @@ import { prisma } from '@/lib/prisma';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
 
+  if (req.method === 'PUT') {
+    const { title, date, status, clientId } = req.body;
+
+    try {
+      const video = await prisma.video.update({
+        where: { id: String(id) },
+        data: {
+          title,
+          date: new Date(date),
+          status,
+          clientId,
+        },
+      });
+
+      return res.status(200).json(video);
+    } catch (error) {
+      console.error('Error updating video:', error);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
   if (req.method === 'POST') {
     const { action } = req.body;
 

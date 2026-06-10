@@ -1,18 +1,20 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import { useAuthStore } from '@/store/auth';
-import { Menu, LogOut, Settings } from 'lucide-react';
+import { Menu, LogOut, Settings, ArrowLeft } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
   showMenu?: boolean;
   onMenuClick?: () => void;
+  showBack?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   title,
   showMenu = false,
   onMenuClick,
+  showBack = true,
 }) => {
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
@@ -21,6 +23,15 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-apple-border">
       <div className="px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
+          {showBack && (
+            <button
+              onClick={() => router.back()}
+              className="p-2 hover:bg-apple-bg rounded-lg transition-colors"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-5 h-5 text-apple-text-secondary" />
+            </button>
+          )}
           {showMenu && (
             <button
               onClick={onMenuClick}
